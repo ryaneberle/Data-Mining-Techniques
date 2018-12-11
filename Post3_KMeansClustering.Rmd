@@ -1,0 +1,58 @@
+---
+title: "Kmeans Clustering"
+author: "Ryan Eberle"
+date: "December 10, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**For this post I will examine a data set of home improvement customers to help give insight into what the customer base looks like.**
+
+**First lets do a little data exploration to see what our customer base looks like.**
+```{r}
+#read data
+cust<-read.csv("Home_Customers.csv")
+
+head(cust)
+str(cust)
+
+#How many customers rent their home (1) vs own their home (0)
+table(cust$rent)
+#How many customers have a garden at their home (1 means yes 0 means no)
+table(cust$garden)
+#How many customers are male(1) vs female(0)
+table(cust$gender)
+#The age of the customers
+hist(cust$age)
+table(cust$age)
+#It appears there are some incorrect values as it does not make sense for a customer of a home improvement store to be under 10 years of age.
+```
+
+*Based on our data exploration, we can tell that the majority of our customer base is male, owns their house, has a garden at thier house, and is between 30-60 years old.*
+
+
+**Now we are going to do some K-means clustering of our data base to break our customers into segments to target specific groups for marketing purposes.**
+```{r}
+set.seed(1)
+fit<-kmeans(cust, 5)
+
+#Trying to find the optimal number of clusters
+SSEs <- rep(NA,10) 
+SSEs[1] <- fit$totss 
+for(k in 2:10){
+	fit <- kmeans(cust, k)
+	SSEs[k] <- fit$withinss
+}
+par(mar=c(4,4,1,1))
+
+plot(1:10,SSEs,type="b",xlab="Number of Clusters")
+
+#The optimal number of clusters is 4
+fit<-kmeans(cust, 4)
+fit$center
+
+```
+*Our clusters tell us 2 things.  First, that the main difference in the clusters is the average age of each cluster.  Second, the younger clusters are more likely to rent their house, not have a garden, and be female.  Based on all these results, we should do most of our marketing to middle-aged males that own their house and have a garden.  Furthermore, their may be room to expand our customer base to the younger generation if we target females that may or may not own their own home yet.*
