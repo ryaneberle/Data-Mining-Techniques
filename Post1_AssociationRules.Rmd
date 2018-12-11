@@ -1,0 +1,70 @@
+---
+title: "Market Basket Analysis of Buying Baseball Equipment"
+author: "Ryan Eberle"
+date: "December 7, 2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**For this post I will use market basket techniques with the arules package in R to study customer buying behavior of baseball equipment at local sports store.**
+
+```{r}
+library(arules)
+library(arulesViz)
+
+data <- read.csv("Baseball_Gear.csv", row.names=1)
+data<-as.matrix(data)
+rules<-apriori(data)
+inspect(rules)
+
+```
+
+
+**Looking at the top association rules based on highest lift.**
+
+```{r}
+rules.sorted <- sort(rules, by="lift")
+lift_top3<-rules.sorted[0:3]
+inspect(lift_top3)
+```
+
+*What the lift means for our first rule is that customers are 3.69 times more likely to buy baseballs if they buy a glove.  Likewise, the second rule is that customers are 2.73 times more likely to buy cleats if they buy batting gloves, socks, and pants at the store.*
+
+
+**Looking at the top association rules based on highest confidence.**
+
+```{r}
+rules.sorted <- sort(rules, by="confidence")
+conf_top3<-rules.sorted[0:3]
+inspect(conf_top3)
+```
+
+*What the confidence means for our first rule is that 95.9% of the time that batting gloves, socks, and pants were bought, cleats were bought as well.  Likewise, the second rule is that 93% of the time that batting gloves and cleats were bought, socks were bought as well.  Finally, the last rule is that 92.7% of the time that helmets and belts were bought, pants were bought too.*
+
+
+**Looking at the top association rules based on highest support.**
+
+```{r}
+rules.sorted <- sort(rules, by="support")
+conf_top3<-rules.sorted[0:3]
+inspect(conf_top3)
+```
+
+*What support means for our rules is how frequently these items were bought in the total dataset.  So 31.9% of the purchases included socks and cleats.* 
+
+
+**Different types of plots showing the rules based on their confidence, support, and lift.**
+
+```{r}
+plot(rules)
+plot(rules, method = "grouped")
+plot(rules, method = "graph")
+plot(rules, method = "paracoord", control = list(reorder = TRUE))
+```
+
