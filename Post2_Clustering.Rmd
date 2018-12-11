@@ -1,0 +1,58 @@
+---
+title: "Crab Clustering"
+author: "Ryan Eberle"
+date: "December 1, 2018"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+**For this post I will examine a dataset of female crabs and cluster them based on different measurements and the presence of satellites (male crabs).**
+
+
+**I will be using hierachical clustering to group the crabs.**
+```{r}
+library(dplyr)
+
+#Read in data
+crab<-read.csv("crab2.csv")
+
+#Brief analysis of what dataset looks like
+str(crab)
+head(crab)
+
+#Heirarchical Clustering
+dd <- dist(scale(crab), method = "euclidean")
+hc <- hclust(dd, method = "complete")
+plot(hc)
+
+#Seperating plot into clusters based on where most obvious divisions are (longest vertical lengths)
+plot.new()
+plot(hc)
+rect.hclust(hc, k=3, border="red")
+
+#Seperating data into the 3 clusters
+groups <- cutree(hc, k=3) 
+crab$groups <- as.factor(groups)
+
+#Looking at average values for each of our clusters to get a better idea of the makeup of the groups
+crab %>%
+  group_by(groups) %>%
+  summarise_all("mean") -> crab_sum
+
+crab_sum
+
+```
+*These groups tell us a few things.  First of all, looking at group 3 we see that the group with the largest average width and weight and smallest spine has a 100% satellite presence, with also the largest number of satellites per crab.  However, this group is very small and may be considered almost an outlier group.  SO lets further examine our other two groups then.  Group 1 has a larger average width and weight and smaller average spine than Group 2.  Similarily to what we saw with Group 3, Group 1 has a higher % satellite presence and average number of satellites per crab than Group 2. Lets do a few simple linear regression analysis and see if we get these same indicators where increased width and weight and decreased spine lead to an increased chance of satellite presence and number of overall satellites.*
+
+```{r}
+mod1<-lm(y~spine+width+weight, data=crab)
+summary(mod1)
+mod2<-lm(satell~spine+width+weight, data=crab)
+summary(mod2)
+```
+
+*While these do show us that probability of satellites and number of satellites should go up with width and weight, this model does not appear to be a very good indicator of just how likley that probability is, or how many satellites we should expect given certain measurements.*
